@@ -1,5 +1,7 @@
-def foo():
-    print("Hello, world")
+def foo(n):
+
+    for i in range(n):
+        print("Hello, world")
 
 
-foo()
+foo(3)
