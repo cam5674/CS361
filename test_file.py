@@ -1,12 +1,45 @@
-def foo(n):
+import sys
 
-    for i in range(n):
-        print("Hello, world")
+import requests
 
 
-def foo_2(n):
-    """Second commit"""
+key = "f908849cbe14794c8cdce604c8fd547d098d2af1"
+headers = {
+    'Content-Type': 'application/json'
+}
+response = requests.get(
+    f"https://api.tiingo.com/iex/?tickers=apple&token={key}",
+    headers=headers)
+data = response.json()
+print(data)
+def get_data(stock: str):
+    """
+    list with a dictionary:
+    [{}]
+    :param stock:
+    :return:
+    """
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    response = requests.get(f"https://api.tiingo.com/iex/?tickers={stock}&token={key}",headers=headers)
+    data = response.json()
 
-    print(n)
+    return data
 
-foo(3)
+
+def menu():
+    print("Welcome!\n")
+    while True:
+        stock = str(input("Look up stock or click 1 to exit: "))
+
+        if stock == 1:
+            print("Thank you for stopping by!")
+            break
+        else:
+            data = get_data(stock)
+            print(data)
+            print(data[0]['last'])
+
+
+menu()
