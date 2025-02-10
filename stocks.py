@@ -1,6 +1,16 @@
-import json
+"""
+This program prints a text based menu in the console for the user to interact
+with. All user information(favorite stocks/username) is saved in the
+storage.json file. A user can search stocks and save/add stocks to their
+profile.
 
-from rich.text import Text
+WARNING: For this program to work you need an api key from tiingo. The cred
+file contains my personal key. IF you would like to use this program you will
+need to get a key from tiingo, create a module named cred and write your key in the
+program, like this: key = "7777777777". Then you can import it to this module.
+
+"""
+import json
 from rich.console import Console
 from rich.table import Table
 import requests
@@ -11,32 +21,48 @@ from profile import Profile
 
 def get_data(stock: str):
     """
+    # TODO: Check for wrong input
+
+    Uses tiingo api to get the stock. Takes a string from the user, string
+    needs to be an accurate ticker.
+
+    Example of data:
+
     list with a dictionary:
     [{}]
-    :param stock:
-    :return:
+    :param stock: ticker to be looked up.
+    :return: JSON of data
     """
+
     headers = {
         'Content-Type': 'application/json'
     }
-    response = requests.get(f"https://api.tiingo.com/iex/?tickers={stock}&token={cred.key}",headers=headers)
+    response = requests.get(f"https://api.tiingo.com/iex/?tickers={stock}&token={cred.key}", headers=headers)
     data = response.json()
     return data
 
 
 def get_news(ticker: str):
+    """
+    #TODO: Make separate microservice for news.
+    Unfinished. Will add this to another module.
+    :param ticker: search or ticker for news
+    :return: list of news searches from yf
+    """
     news = yf.Search(f"{ticker}", news_count=5).news
     print(news)
-    if news == []:
+    if len(news) == 0:
         print("No news found")
     return news
 
 
 def pretty_print(stock):
     """
+    Creates a stock table that prints out a user favorite stocks. Also, adds a
+    row for every search the user makes.
 
-    :param stock: [ [{}], [{}] ]
-    :return:
+    :param stock: A list of dictionaries. [ [{}], [{}] ]
+    :return: Table to be printed
     """
 
     table = Table("Ticker", style="magenta")
@@ -60,12 +86,17 @@ def pretty_print(stock):
         else:
             percentage_change = f'[red]{percentage_change}%[/red]'
         # Get the dictionary in the list and print out a row
-        table.add_row(stock_info[0]['ticker'], str(stock_info[0]['open']),str(stock_info[0]['high']), str(stock_info[0]['low']),str(stock_info[0]['tngoLast']), percentage_change, str(stock_info[0]['volume']))
+        table.add_row(stock_info[0]['ticker'], str(stock_info[0]['open']), str(stock_info[0]['high']), str(stock_info[0]['low']), str(stock_info[0]['tngoLast']), percentage_change, str(stock_info[0]['volume']))
 
     return table
 
 
 def reset_table():
+    """
+    Erases the table
+    :return:
+
+    """
     table = Table("Ticker", style="magenta")
     table.add_column("Last Price", justify="right", style="white")
     table.add_column("High", justify="right", style="white")
@@ -76,53 +107,69 @@ def reset_table():
 
 def check_username(name: str):
     """
-    Returns True if username is in the file. The dictionary of the profile is returned
-    as well. Returns False if the username is not in the file and 0 for the
-    dictionary.
-    Checks if username is in storage file.
-    :param name:
+    Returns True if username is in the file. The dictionary of the profile is
+    returned as well. Returns False if the username is not in the file and 0 for the
+    dictionary. Checks if username is in storage file.
+    :param name: String
     :return: A bool depending on if the username is in the json file or not.
 
     """
-
+    # open file to check JSON for name
     with open("storage.json", "r") as f:
         try:
             data = json.load(f)
         except json.decoder.JSONDecodeError:
             return False
-        for dict in data:
-            for key in dict.items():
+        for dic in data:
+            for key in dic.items():
                 if key[0] == name:
                     f.close()
-                    return True, dict
+                    # name was found
+                    return True, dic
         else:
             f.close()
+            # name is not in json file
             return False, 0
 
 
 def create_profile():
     """
     Creates a new profile.
+    Example of profile: {"cam5674": [], "fav": ["vti","goog"]
 
-    :return: New profile class object profilec
+    :return: New profile class object profile
     """
+    # prompt user for a username. Check if it is longer than 15 characters
     while True:
-        name = str(input("Enter a username: "))
-        # bool value[0]
+        name = str(input("Enter a username. A username needs to be less than 15 characters: "))
+        if len(name) >= 15:
+            print("Too long. Please enter a username that is less than 15 characters.")
+            print("\n")
+            continue
+        # bool value[0], 0 = name is taken.
         try:
             if check_username(name)[0]:
                 print("Username is taken. Please enter another username.")
+                print("\n")
                 continue
         except TypeError:
             break
         break
-    # Profile example:  {"cam5674": [], "fav": ["vti","goog"]
+
+    # create instance to store information
     profile = Profile(name)
 
     return profile
 
 
 def new_profile(profile):
+    """
+    #TODO: Refactor this code. Not using it at the moment.
+    Places a new profile in the JSON file.
+
+    :param profile: dictionary
+    :return:
+    """
     with open("storage.json", "a") as f:
         json.dump(profile, f, indent=5)
 
@@ -131,7 +178,7 @@ def save_profile(profiles: dict):
     """
     Opens storage.json and adds a new profile to the json file.
     [{}]
-    :param profiles:
+    :param profiles: Dictionary that contains profile information
     :return:
     """
     with open("storage.json", "r+") as file:
@@ -139,7 +186,8 @@ def save_profile(profiles: dict):
             data = json.load(file)
         except json.decoder.JSONDecodeError:
             # store
-            data = []  # If the file is empty, create an empty list
+            # If the file is empty, create an empty list
+            data = []
 
         data.append(profiles)
 
@@ -150,17 +198,15 @@ def save_profile(profiles: dict):
 
 def check_cred():
     """
+    #TODO: Look over class object. Better way to store data?
+
     Checks for username and password. User can create a profile. User's favorite
     stocks are saved in their profile.
 
     :return: User's new profile
     """
-    """
-    console = Console()
-    text = Text("Welcome!")
-    text.stylize("bold magenta",0,8)
-    console.print(text)
-    """
+
+    # introduce program
     print("Welcome!\n")
     while True:
         response = str(input("Enter 1 to sign in \nEnter 2 to create a profile. Creating a profile will let you save your favorite stocks. "
@@ -170,23 +216,28 @@ def check_cred():
         if response == "1":
             # check for valid username
             while True:
-                name = input(str("Please enter your username: "))
-                bool, dict = check_username(name)
-                if bool:
+                name = input(str("Please enter your username\nPlease enter your username: "))
+                if len(name) >= 15:
+                    print("Too long. Please enter a username that is less than 15 characters.")
+                    print("\n")
+                    continue
+                # check if the name is valid
+                valid, dic = check_username(name)
+                if valid:
                     # valid, return dict
-                    return dict
+                    return dic
                 # ask again
                 else:
                     break
         elif response == "2":
-            # Can you replace the dictionary with the class object?
             # save class object in profile
             profile = create_profile()
+
             # save profile info in dictionary
-            profiles = {}
-            profiles[profile.get_name()] = []
+            profiles = {profile.get_name(): []}
+            #profiles[profile.get_name()] = []
             while True:
-                ticker = str(input("Please enter a stock ticker you want to keep track of or enter 1 to exit program\n Enter stock ticker:  "))
+                ticker = str(input("Please enter a stock ticker you want to keep track of or enter 1 to exit program\n The stock ticker needs to be a valid, for example: vti\nEnter stock ticker:  "))
                 print("\n")
                 if ticker == "1":
                     break
@@ -200,17 +251,28 @@ def check_cred():
         elif response == "4":
             print("This program allows you to look up the real-time prices of stocks. "
                   "\nIf you create a profile you can save and add stocks to your profile. "
-                   "\nWhen you sign in with your profile name, a table with your favorite stocks are displayed.\n\n")
+                  "\nWhen you sign in with your profile name, a table with your favorite stocks are displayed. "
+                  "\nTo create a profile you only need to enter '3' to select the create profile option. "
+                  "\nYour username needs to be less than 15 characters.\n\n")
         elif response == "5":
             print("Thank you for stopping by!")
             return "5"
     return profile
 
 
-def menu(profile = None):
+def menu(profile=None):
+    """
+    Looks up a stock for a user. Will print out a table of the user's favorite
+    stocks. IF the user selects '3', then the program will treat the user as a
+    guest.
+
+    :param profile: If dictionary, profile is old and if '3', user is a guest.
+    :return: A number, 0 or 1: 0 to end the program, 1 to continue the program
+    """
     stock_list = []
 
     while True:
+        # look up stocks for user
         stock = str(input("Look up stock or enter 1 to exit\nEnter 2 to go back to main menu\nEnter your response: "))
         print("\n")
 
@@ -221,28 +283,28 @@ def menu(profile = None):
         elif stock == "2":
             return "1"
         else:
+            # get stock data and append it to a list
             stock_data = get_data(stock)
-            # news = get_news(stock)
             stock_list.append(stock_data)
+
+            # print out stock data. Adds a row to previous table
             table = pretty_print(stock_list)
-            # to get the color to work I had to click on emulate terminal in
-            # the output console
             console = Console(color_system="windows")
             console.print(table)
+
+            # no profile option
             if profile != "3":
                 response = str(input(f"Would you like to add {stock} to your favorites? y/n\nEnter your response: "))
                 print("\n")
                 if response == "y":
-                    # profile['fav'].append(stock)
-                    # I don't think you need a try block here to check if the file is empty
                     with open("storage.json", "r") as f:
                         # get value
                         data = json.load(f)
-                        for dict in data:
-                            for key in dict.keys():
+                        for dic in data:
+                            for key in dic.keys():
                                 if key == list(profile)[0]:
                                     # add to value
-                                    dict["fav"].append(stock)
+                                    dic["fav"].append(stock)
                     # write to file
                     with open("storage.json", "w") as file:
                         json.dump(data, file, indent=4)
@@ -252,12 +314,6 @@ def menu(profile = None):
                 elif response == "n":
                     continue
 
-            # To be implemented
-            # print('\n\n\n')
-            # add news later(commented out news above)
-            #print(news[0]['title'])
-            #print(news[0]['link'])
-
 
 def main():
     """
@@ -265,39 +321,53 @@ def main():
     Does not work if the username does not exist
     """
     while True:
+        # get profile if it exists
         new_profile = check_cred()
+
+        # Continue without a profile
         if new_profile == "3":
             menu(new_profile)
+
+        # exit program
         elif new_profile == "5":
             break
+        # If new_profile is a dictionary, then it is an old profile
         elif isinstance(new_profile, dict):
+            # get list of favorite stocks and put them in favs
             fav_stocks = []
             favs = new_profile['fav']
             for stock in favs:
                 stock = get_data(stock)
                 fav_stocks.append(stock)
+            # print favorite stocks for user
             table = pretty_print(fav_stocks)
             console = Console(color_system="windows")
             console.print(table)
+
+            # exit program
             if menu(new_profile) == "0":
                 break
+
         # check if user created a profile and print out their favorite stocks
         # should this be a function? Print out favs for user?
+
+        # new profile
         else:
             stocks = []
             for stock in new_profile.get_fav_stocks():
                 stock = get_data(stock)
                 stocks.append(stock)
+
+            # print favorite stocks for user
             table = pretty_print(stocks)
             console = Console(color_system="windows")
             console.print(table)
             print("\n\n")
+
+            # exit program
             if menu(new_profile.get_name()) == "0":
                 break
 
 
-
 if __name__ == "__main__":
     main()
-
-
