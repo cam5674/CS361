@@ -109,9 +109,12 @@ def create_profile():
     while True:
         name = str(input("Enter a username: "))
         # bool value[0]
-        if check_username(name)[0]:
-            print("Username is taken. Please enter another username.")
-            continue
+        try:
+            if check_username(name)[0]:
+                print("Username is taken. Please enter another username.")
+                continue
+        except TypeError:
+            break
         break
     # Profile example:  {"cam5674": [], "fav": ["vti","goog"]
     profile = Profile(name)
@@ -160,7 +163,9 @@ def check_cred():
     """
     print("Welcome!\n")
     while True:
-        response = str(input("Enter 1 to sign in or 2 to create a profile. Creating a profile will let you save your favorite stocks: "))
+        response = str(input("Enter 1 to sign in \nEnter 2 to create a profile. Creating a profile will let you save your favorite stocks. "
+                             "\nEnter 3 to contine without a profile\nEnter 4 for more information about the program\nEnter 5 to exit program\nPlease enter your response: "))
+        print("\n")
 
         if response == "1":
             # check for valid username
@@ -181,7 +186,8 @@ def check_cred():
             profiles = {}
             profiles[profile.get_name()] = []
             while True:
-                ticker = str(input("Please enter a stock ticker you want to keep track of or enter 1 to exit: "))
+                ticker = str(input("Please enter a stock ticker you want to keep track of or enter 1 to exit program\n Enter stock ticker:  "))
+                print("\n")
                 if ticker == "1":
                     break
                 profile.set_fav_stocks(ticker)
@@ -189,7 +195,15 @@ def check_cred():
             profiles['fav'] = profile.get_fav_stocks()
             save_profile(profiles)
             break
-
+        elif response == "3":
+            return response
+        elif response == "4":
+            print("This program allows you to look up the real-time prices of stocks. "
+                  "\nIf you create a profile you can save and add stocks to your profile. "
+                   "\nWhen you sign in with your profile name, a table with your favorite stocks are displayed.\n\n")
+        elif response == "5":
+            print("Thank you for stopping by!")
+            return "5"
     return profile
 
 
@@ -197,11 +211,15 @@ def menu(profile = None):
     stock_list = []
 
     while True:
-        stock = str(input("Look up stock or enter 1 to exit: "))
+        stock = str(input("Look up stock or enter 1 to exit\nEnter 2 to go back to main menu\nEnter your response: "))
+        print("\n")
 
         if stock == "1":
             print("Thank you for stopping by!")
-            break
+            return "0"
+
+        elif stock == "2":
+            return "1"
         else:
             stock_data = get_data(stock)
             # news = get_news(stock)
@@ -211,26 +229,28 @@ def menu(profile = None):
             # the output console
             console = Console(color_system="windows")
             console.print(table)
-            response = str(input(f"Would you like to add {stock} to your favorites? y/n "))
-            if response == "y":
-                # profile['fav'].append(stock)
-                # I don't think you need a try block here to check if the file is empty
-                with open("storage.json", "r") as f:
-                    # get value
-                    data = json.load(f)
-                    for dict in data:
-                        for key in dict.keys():
-                            if key == list(profile)[0]:
-                                # add to value
-                                dict["fav"].append(stock)
-                # write to file
-                with open("storage.json", "w") as file:
-                    json.dump(data, file, indent=4)
-                    print(f"Your favorites has been updated with {stock}! ")
-                    file.close()
+            if profile != "3":
+                response = str(input(f"Would you like to add {stock} to your favorites? y/n\nEnter your response: "))
+                print("\n")
+                if response == "y":
+                    # profile['fav'].append(stock)
+                    # I don't think you need a try block here to check if the file is empty
+                    with open("storage.json", "r") as f:
+                        # get value
+                        data = json.load(f)
+                        for dict in data:
+                            for key in dict.keys():
+                                if key == list(profile)[0]:
+                                    # add to value
+                                    dict["fav"].append(stock)
+                    # write to file
+                    with open("storage.json", "w") as file:
+                        json.dump(data, file, indent=4)
+                        print(f"Your favorites has been updated with {stock}! ")
+                        file.close()
 
-            elif response == "n":
-                continue
+                elif response == "n":
+                    continue
 
             # To be implemented
             # print('\n\n\n')
@@ -244,29 +264,37 @@ def main():
     new_profile could be a dict, a boolean value, or class object.
     Does not work if the username does not exist
     """
-    new_profile = check_cred()
-    if isinstance(new_profile, dict):
-        fav_stocks = []
-        favs = new_profile['fav']
-        for stock in favs:
-            stock = get_data(stock)
-            fav_stocks.append(stock)
-        table = pretty_print(fav_stocks)
-        console = Console(color_system="windows")
-        console.print(table)
-        menu(new_profile)
-    # check if user created a profile and print out their favorite stocks
-    # should this be a function? Print out favs for user?
-    else:
-        stocks = []
-        for stock in new_profile.get_fav_stocks():
-            stock = get_data(stock)
-            stocks.append(stock)
-        table = pretty_print(stocks)
-        console = Console(color_system="windows")
-        console.print(table)
-        print("\n\n")
-        menu()
+    while True:
+        new_profile = check_cred()
+        if new_profile == "3":
+            menu(new_profile)
+        elif new_profile == "5":
+            break
+        elif isinstance(new_profile, dict):
+            fav_stocks = []
+            favs = new_profile['fav']
+            for stock in favs:
+                stock = get_data(stock)
+                fav_stocks.append(stock)
+            table = pretty_print(fav_stocks)
+            console = Console(color_system="windows")
+            console.print(table)
+            if menu(new_profile) == "0":
+                break
+        # check if user created a profile and print out their favorite stocks
+        # should this be a function? Print out favs for user?
+        else:
+            stocks = []
+            for stock in new_profile.get_fav_stocks():
+                stock = get_data(stock)
+                stocks.append(stock)
+            table = pretty_print(stocks)
+            console = Console(color_system="windows")
+            console.print(table)
+            print("\n\n")
+            if menu(new_profile.get_name()) == "0":
+                break
+
 
 
 if __name__ == "__main__":
