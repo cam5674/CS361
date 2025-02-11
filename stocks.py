@@ -6,8 +6,8 @@ profile.
 
 WARNING: For this program to work you need an api key from tiingo. The cred
 file contains my personal key. IF you would like to use this program you will
-need to get a key from tiingo, create a module named cred and write your key in the
-program, like this: key = "7777777777". Then you can import it to this module.
+need to get a key from tiingo, create a module named cred and write your key in
+the program, like this: key = "7777777777". Then you can import it to this module.
 
 """
 import json
@@ -216,7 +216,7 @@ def check_cred():
         if response == "1":
             # check for valid username
             while True:
-                name = input(str("Please enter your username\nPlease enter your username: "))
+                name = input(str("Please enter your username: "))
                 if len(name) >= 15:
                     print("Too long. Please enter a username that is less than 15 characters.")
                     print("\n")
@@ -237,7 +237,9 @@ def check_cred():
             profiles = {profile.get_name(): []}
             #profiles[profile.get_name()] = []
             while True:
-                ticker = str(input("Please enter a stock ticker you want to keep track of or enter 1 to exit program\n The stock ticker needs to be a valid, for example: vti\nEnter stock ticker:  "))
+                ticker = str(input("Please enter a stock ticker you want to keep track of.\n"
+                                   "The stock ticker needs to be a valid, for example: vti"
+                                   "\nEnter 1 to continue or a stock ticker\n\nEnter your response:  "))
                 print("\n")
                 if ticker == "1":
                     break
@@ -247,7 +249,11 @@ def check_cred():
             save_profile(profiles)
             break
         elif response == "3":
-            return response
+            warning = input("WARNING: You will not be able to save your searches. Do you wish to continue? y/n\nEnter your response: ")
+            if warning == "y":
+                return response
+            else:
+                continue
         elif response == "4":
             print("This program allows you to look up the real-time prices of stocks. "
                   "\nIf you create a profile you can save and add stocks to your profile. "
