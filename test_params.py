@@ -17,20 +17,25 @@ with open(path, "r") as file:
         data = json.load(file)
 
 
-def get_news():
+def get_news(username=None):
         favorite_stocks = None
-        while True:
-                username = input("Enter Username: ")
+        if username:
                 for entry in data:
                         if username in entry:
                                 favorite_stocks = entry["fav"]
                                 break
+        else:
+                while True:
+                        username = input("Enter Username: ")
+                        for entry in data:
+                                if username in entry:
+                                        favorite_stocks = entry["fav"]
+                                        break
 
-                if favorite_stocks is None:
-                        username = input("Username entered invalid please enter a valid username: ")
-                        continue
-                break
-
+                        if favorite_stocks is None:
+                                username = input("Username entered invalid please enter a valid username: ")
+                                continue
+                        break
 
         socket.send_json(favorite_stocks)
 

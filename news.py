@@ -6,15 +6,17 @@ import test_params
 # Do I need to set up zmq
 
 
-
-def print_table():
+def print_news_table(username=None):
     """
     Creates a news table that prints out links for users.
 
     :param stock: A list of dictionaries. [ [{}], [{}] ]
     :return: Table to be printed
     """
-    news = get_news()
+    if username:
+        news = get_news(username)
+    else:
+        news = get_news()
     table = Table("Ticker", style="magenta", expand=True)
     table.add_column("Title", justify="right", style="white", )
     table.add_column("Date", justify="right", style="white",)
@@ -29,4 +31,3 @@ def print_table():
     console.print(table)
 
 
-print_table()
