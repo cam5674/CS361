@@ -1,8 +1,7 @@
 from rich.console import Console
 from rich.table import Table
 from test_params import get_news
-import test_params
-
+import pyshorteners
 # Do I need to set up zmq
 
 
@@ -13,10 +12,13 @@ def print_news_table(username=None):
     :param stock: A list of dictionaries. [ [{}], [{}] ]
     :return: Table to be printed
     """
+    #TODO: edit tinyurl so it is more readable
+    #TODO:
     if username:
         news = get_news(username)
     else:
         news = get_news()
+        print(news)
     table = Table("Ticker", style="magenta", expand=True)
     table.add_column("Title", justify="right", style="white", )
     table.add_column("Date", justify="right", style="white",)
@@ -25,9 +27,12 @@ def print_news_table(username=None):
 
     for key, values in news.items():
         for value in values:
-            table.add_row(key,value['title'], value['date'], value['source'], value['url'])
+            s = pyshorteners.Shortener()
+            lurl = value['url']
+            short = s.tinyurl.short(lurl)
+            table.add_row(key,value['title'], value['date'], value['source'], short)
 
-    console = Console(color_system="windows", width=180)
+    console = Console(color_system="windows", width=150)
     console.print(table)
 
 
