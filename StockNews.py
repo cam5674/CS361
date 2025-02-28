@@ -13,7 +13,7 @@ def fetch_news(ticker):
     feed = feedparser.parse(url)
 
     articles = []
-    for entry in feed.entries[:5]:  # Get the 5 most recent articles
+    for entry in feed.entries[:1]:  # Get the 5 most recent articles
         articles.append({
             "title": entry.title,
             "url": entry.link,
