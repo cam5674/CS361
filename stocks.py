@@ -10,6 +10,7 @@ need to get a key from tiingo, create a module named cred and write your key in
 the program, like this: key = "7777777777". Then you can import it to this module.
 
 """
+import re
 import json
 from rich.console import Console
 from rich.table import Table
@@ -17,12 +18,11 @@ import requests
 import yfinance as yf
 import cred
 from profile import Profile
+from news import print_news_table
 
 
 def get_data(stock: str):
     """
-    # TODO: Check for wrong input
-
     Uses tiingo api to get the stock. Takes a string from the user, string
     needs to be an accurate ticker.
 
@@ -40,20 +40,6 @@ def get_data(stock: str):
     response = requests.get(f"https://api.tiingo.com/iex/?tickers={stock}&token={cred.key}", headers=headers)
     data = response.json()
     return data
-
-
-def get_news(ticker: str):
-    """
-    #TODO: Make separate microservice for news.
-    Unfinished. Will add this to another module.
-    :param ticker: search or ticker for news
-    :return: list of news searches from yf
-    """
-    news = yf.Search(f"{ticker}", news_count=5).news
-    print(news)
-    if len(news) == 0:
-        print("No news found")
-    return news
 
 
 def pretty_print(stock):
@@ -104,7 +90,6 @@ def reset_table():
     table.add_column("Open", justify="right", style="white")
     table.add_column("Volume", justify="right", style="white")
 
-
 def check_username(name: str):
     """
     Returns True if username is in the file. The dictionary of the profile is
@@ -139,6 +124,8 @@ def create_profile():
 
     :return: New profile class object profile
     """
+    #TODO: Check wrong inputs
+
     # prompt user for a username. Check if it is longer than 15 characters
     while True:
         name = str(input("Enter a username. A username needs to be less than 15 characters: "))
@@ -156,8 +143,22 @@ def create_profile():
             break
         break
 
+    # prompt user for email
+    while True:
+        email = str(input("Enter your email: "))
+
+        if not re.match(r"^[\w\.-]+@[\w\.-]+\.\w{2,4}$", email):
+            continue
+        while True:
+            try:
+                response = str(input("Would you like email updates? Enter 1 for yes or 0 for no: "))
+                break
+            except TypeError:
+                continue
+
+        break
     # create instance to store information
-    profile = Profile(name)
+    profile = Profile(name, email, response)
 
     return profile
 
@@ -234,7 +235,7 @@ def check_cred():
             profile = create_profile()
 
             # save profile info in dictionary
-            profiles = {profile.get_name(): []}
+            profiles = {profile.get_name(): [], profile.get_email(): profile.get_verf()}
             #profiles[profile.get_name()] = []
             while True:
                 ticker = str(input("Please enter a stock ticker you want to keep track of.\n"
@@ -326,6 +327,7 @@ def main():
     new_profile could be a dict, a boolean value, or class object.
     Does not work if the username does not exist
     """
+    #TODO: change key to username and value as the name
     while True:
         # get profile if it exists
         new_profile = check_cred()
@@ -349,6 +351,10 @@ def main():
             table = pretty_print(fav_stocks)
             console = Console(color_system="windows")
             console.print(table)
+            # probably should change key to username and value as the name
+            print_news_table(next(iter(new_profile)))
+            print("\n")
+            print(new_profile)
 
             # exit program
             if menu(new_profile) == "0":
@@ -359,6 +365,7 @@ def main():
 
         # new profile
         else:
+            #TODO: Print out news for new profiles
             stocks = []
             for stock in new_profile.get_fav_stocks():
                 stock = get_data(stock)

@@ -1,15 +1,21 @@
 class Profile:
 
-    def __init__(self, username):
+    def __init__(self, username, email=None, verf=None):
         self._fav_stocks = []
         self._news = []
+        self._verf = verf
+        self._email = email
         self._subreddits = []
         self._username = username
-
 
     def get_name(self):
         return self._username
 
+    def get_email(self):
+        return self._email
+
+    def get_verf(self):
+        return self._verf
     def get_fav_stocks(self):
         return self._fav_stocks
 
