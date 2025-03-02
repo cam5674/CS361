@@ -22,12 +22,10 @@ def fetch_news(ticker):
         })
 
     return articles
-
-username = None
-
+# username = None
 while True:
     favorite_stocks = socket.recv_json()
-
+    print(favorite_stocks)
 
     print(f"Received request of latest news for stocks: {favorite_stocks}")
 

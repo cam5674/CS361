@@ -16,11 +16,17 @@ from rich.console import Console
 from rich.table import Table
 import requests
 import yfinance as yf
+
 import cred
 from profile import Profile
 from news import print_news_table
+import sys
+print(sys.executable)
 
 
+
+#spy_list = yf.tickers_sp500()
+#print(spy_list)
 def get_data(stock: str):
     """
     Uses tiingo api to get the stock. Takes a string from the user, string
@@ -376,6 +382,10 @@ def main():
             console = Console(color_system="windows")
             console.print(table)
             print("\n\n")
+
+            # print out news articles
+            name = new_profile.get_name()
+            print_news_table(name)
 
             # exit program
             if menu(new_profile.get_name()) == "0":
