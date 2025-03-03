@@ -5,7 +5,11 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import os
 from dotenv import load_dotenv
-from stocks import  get_data
+from stocks import get_data
+import sys
+from datetime import datetime, timedelta
+import time
+print(sys.executable)
 load_dotenv()
 
 email_me = os.getenv('email')
@@ -14,10 +18,11 @@ password = os.getenv('password')
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 
-socket.bind("tcp://*:5556")
+socket.bind("tcp://*:5557")
 
 # TODO: Add headers and cells to table
 # TODO: Add recv after send_update
+
 
 def send_confirmation(user_email):
     me = email_me
@@ -55,8 +60,8 @@ def send_confirmation(user_email):
 def send_update(user_info):
 
     email = user_info['email']
-    """
-    Uses api to get all stocks
+
+    # Uses api to get all stock prices
     print(email)
     fav_stocks = []
     favs = user_info['fav']
@@ -64,7 +69,28 @@ def send_update(user_info):
         stock = get_data(stock)
         fav_stocks.append(stock)
     print(fav_stocks)
-    """
+
+    rows = []
+
+    for x in range(0, len(fav_stocks)):
+        # unpack
+        stock_info = fav_stocks[x]
+
+        html_rows = f"""
+            <tr>
+                    <td style="border: 1px solid black;">{stock_info[0]['ticker']}</td>
+                    <td style="border: 1px solid black;">{stock_info[0]['open']}</td>
+                    <td style="border: 1px solid black;">{stock_info[0]['high']}</td>
+                    <td style="border: 1px solid black;">{stock_info[0]['low']}</td>
+                    <td style="border: 1px solid black;">{stock_info[0]['tngoLast']}</td>
+                    <td style="border: 1px solid black;">{stock_info[0]['volume']}</td>
+            </tr>
+        
+        """
+        rows.append(html_rows)
+
+    rows = ' '.join(rows)
+    print(rows)
     me = email_me
 
 
@@ -76,8 +102,6 @@ def send_update(user_info):
     # body of message
     html = """  
        <html>
-       <style> table, th, td {border:1px solid black;}
-       </style>
            <head></head>
            <body>
                <p>Hi!<br>
@@ -85,24 +109,22 @@ def send_update(user_info):
                </p>
                <table style="width:100%">
                <tr>
-                    <th style="border: 1px solid black;">Company</th>
-                    <th style="border: 1px solid black;">Contact</th>
-                    <th style="border: 1px solid black;">Country</th>
+                    <th style="border: 1px solid black;">Ticker</th>
+                    <th style="border: 1px solid black;">Open</th>
+                    <th style="border: 1px solid black;">High</th>
+                    <th style="border: 1px solid black;">Low</th>
+                    <th style="border: 1px solid black;">Last</th>
+                    <th style="border: 1px solid black;">Volume</th>
                 </tr>
-               <tr>
-                    <td style="border: 1px solid black;">Alfreds Futterkiste</td>
-                    <td style="border: 1px solid black;">Maria Anders</td>
-                    <td style="border: 1px solid black;">Germany</td>
-                </tr>
-                <tr>
-                    <td style="border: 1px solid black;">Centro comercial Moctezuma</td>
-                    <td style="border: 1px solid black;">Francisco Chang</td>
-                    <td style="border: 1px solid black;">Mexico</td>
-                    </tr>
+                {{placeholder}}
+              
                 </table>
            </body>
        </html>  
        """
+    html = html.replace("{{placeholder}}", rows)
+    html = html.replace("{{placeholder}}", rows)
+    print(html)
     # Record the MIME types of both parts
     text = MIMEText(html, 'html')
     msg.attach(text)
@@ -115,18 +137,44 @@ def send_update(user_info):
     socket.send_string(f"Sent email to{email}")
     s.quit()
 
+def check_time():
+
+    target_time = datetime.now().replace(hour=14, minute=43, second=0)
+
+    while True:
+
+        now = datetime.now()
+        print(f"current time{now}")
+        print(f"target time{target_time}")
+        sleep_time = target_time - now
+
+        print(type(sleep_time))
+        if sleep_time < timedelta(minutes = -1):
+            target_time = target_time + timedelta(days = 1)
+            print("Add day")
+        else:
+            print("soon")
+            print(sleep_time)
+            if sleep_time < timedelta(minutes=2):
+                return True
+            else:
+              sec = sleep_time.total_seconds()
+              print(sec)
+              time.sleep(sec)
 
 while True:
-    email = socket.recv_string()
-    print(f"received {email}")
-    try:
-        data = json.loads(email)
-        print(data)
-        print("Received JSON:")
-        send_update(data)
-    except json.JSONDecodeError:
-        print(email)
-        print("Received string")
-        send_confirmation(email)
+    if check_time():
+        print("Ready to do work!")
+        email = socket.recv_string()
+        print(f"received {email}")
+        try:
+            data = json.loads(email)
+            print(data)
+            print("Received JSON:")
+            send_update(data)
+        except json.JSONDecodeError:
+            print(email)
+            print("Received string")
+            send_confirmation(email)
 
 
