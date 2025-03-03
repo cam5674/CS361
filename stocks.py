@@ -16,7 +16,7 @@ from rich.console import Console
 from rich.table import Table
 import requests
 import yfinance as yf
-
+from client_micro_b import send_email
 import cred
 from profile import Profile
 from news import print_news_table
@@ -29,6 +29,8 @@ print(sys.executable)
 
 #spy_list = yf.tickers_sp500()
 #print(spy_list)
+
+
 def get_data(stock: str):
     """
     Uses tiingo api to get the stock. Takes a string from the user, string
@@ -167,6 +169,8 @@ def create_profile():
         break
     # create instance to store information
     profile = Profile(name, email, response)
+    send_email(profile.get_email())
+    print("Sending a confirmation email...")
 
     return profile
 

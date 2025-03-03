@@ -5,7 +5,7 @@ import time
 
 
 # zmq context and socket are initialized globally
-path =  "storage.json"
+path = "storage.json"
 context = zmq.Context()
 print("Client attempting to connect to server...")
 
@@ -22,7 +22,14 @@ json_test = {"email": "john@gmail"}
 
 json_string = json.dumps(json_test)
 
-def send_email(email):
+
+def send_email(email: str):
+    """
+    Sends email/emails to the server
+
+    :param email: Email or emails to be sent to the server
+    :return:
+    """
 
     socket.send_string(email)
     recv = socket.recv_string()
@@ -30,6 +37,11 @@ def send_email(email):
 
 
 def check_time():
+    """
+    Checks the current time and the time for the client to send the emails
+    to the server.
+    :return:
+    """
 
     target_time = datetime.now().replace(hour=14, minute=43, second=0)
 
@@ -40,40 +52,41 @@ def check_time():
         print(f"target time{target_time}")
         sleep_time = target_time - now
 
-        print(type(sleep_time))
-        if sleep_time < timedelta(minutes = -1):
-            target_time = target_time + timedelta(days = 1)
+        # margin of error of 1 minute
+        if sleep_time < timedelta(minutes=-1):
+            target_time = target_time + timedelta(days=1)
             print("Add day")
         else:
+            # if less than a minute remaining send email
             print("soon")
             print(sleep_time)
             if sleep_time < timedelta(minutes=1):
                 return True
             else:
-              sec = sleep_time.total_seconds()
-              print(sec)
-              time.sleep(sec)
+                sec = sleep_time.total_seconds()
+                print(sec)
+                time.sleep(sec)
+
+
 def main():
 
-        while True:
-            if check_time():
-                with open("storage.json", "r") as f:
-                    data = json.load(f)
-                    for entry in data:
-                        if entry["email service"] == "1":
+    # loop through file and put json in a string to send emails and
+    # favorite stocks to server
+    while True:
+        if check_time():
+            with open("storage.json", "r") as f:
+                data = json.load(f)
+                for entry in data:
+                    if entry["email service"] == "1":
 
-                            email_favs = {"email": entry["email"], "fav": entry["fav"] }
-                            string_email_favs = json.dumps(email_favs)
-                            print(email_favs)
-                            send_email(string_email_favs)
-                            print(f"Sending email{email_favs}")
-                            #send_email(email)
-                break
-
-
+                        email_favs = {"email": entry["email"], "fav": entry["fav"]}
+                        string_email_favs = json.dumps(email_favs)
+                        print(email_favs)
+                        send_email(string_email_favs)
+                        print(f"Sending email{email_favs}")
+                        #send_email(email)
+            break
 
 
 if __name__ == "__main__":
     main()
-
-

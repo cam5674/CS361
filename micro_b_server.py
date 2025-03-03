@@ -6,32 +6,34 @@ from email.mime.text import MIMEText
 import os
 from dotenv import load_dotenv
 from stocks import get_data
-import sys
 from datetime import datetime, timedelta
 import time
-print(sys.executable)
-load_dotenv()
 
+
+load_dotenv()
 email_me = os.getenv('email')
 password = os.getenv('password')
 
+# server
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 
 socket.bind("tcp://*:5557")
 
-# TODO: Add headers and cells to table
-# TODO: Add recv after send_update
-
 
 def send_confirmation(user_email):
+    """
+    Sends a confirmation email to a single user.
+    :param user_email: email receiver
+    :return:
+    """
+
     me = email_me
 
     msg = MIMEMultipart('alternative')
     msg['Subject'] = 'Email confirmation'
     msg['From'] = me
     msg['To'] = user_email
-
 
     # body of message
     html = """  
@@ -44,6 +46,7 @@ def send_confirmation(user_email):
         </body>
     </html>  
     """
+
     # Record the MIME types of both parts
     text = MIMEText(html, 'html')
     msg.attach(text)
@@ -58,18 +61,22 @@ def send_confirmation(user_email):
 
 
 def send_update(user_info):
+    """
+    Sends a table to a single user or multiple users.
+    :param user_info: JSON of emails and favorite stocks
+    :return:
+    """
 
     email = user_info['email']
 
     # Uses api to get all stock prices
-    print(email)
     fav_stocks = []
     favs = user_info['fav']
     for stock in favs:
         stock = get_data(stock)
         fav_stocks.append(stock)
-    print(fav_stocks)
 
+    # initialize array to store dynamic table rows
     rows = []
 
     for x in range(0, len(fav_stocks)):
@@ -89,10 +96,10 @@ def send_update(user_info):
         """
         rows.append(html_rows)
 
+    # join rows together to be used for html later
     rows = ' '.join(rows)
     print(rows)
     me = email_me
-
 
     msg = MIMEMultipart('alternative')
     msg['Subject'] = 'Stock Updates(ENTER DATE HERE)'
@@ -122,9 +129,10 @@ def send_update(user_info):
            </body>
        </html>  
        """
-    html = html.replace("{{placeholder}}", rows)
+    # add rows to html table
     html = html.replace("{{placeholder}}", rows)
     print(html)
+
     # Record the MIME types of both parts
     text = MIMEText(html, 'html')
     msg.attach(text)
@@ -136,6 +144,7 @@ def send_update(user_info):
     s.sendmail(me, email, msg.as_string())
     socket.send_string(f"Sent email to{email}")
     s.quit()
+
 
 def check_time():
 
@@ -149,8 +158,8 @@ def check_time():
         sleep_time = target_time - now
 
         print(type(sleep_time))
-        if sleep_time < timedelta(minutes = -1):
-            target_time = target_time + timedelta(days = 1)
+        if sleep_time < timedelta(minutes=-1):
+            target_time = target_time + timedelta(days=1)
             print("Add day")
         else:
             print("soon")
@@ -158,23 +167,27 @@ def check_time():
             if sleep_time < timedelta(minutes=2):
                 return True
             else:
-              sec = sleep_time.total_seconds()
-              print(sec)
-              time.sleep(sec)
+                sec = sleep_time.total_seconds()
+                print(sec)
+                time.sleep(sec)
+
 
 while True:
-    if check_time():
+
+    # check if it is the time
         print("Ready to do work!")
         email = socket.recv_string()
         print(f"received {email}")
+
+        # check request type(single email vs JSON of emails and favorite stocks
         try:
             data = json.loads(email)
-            print(data)
-            print("Received JSON:")
-            send_update(data)
+            # check if it is the correct time to receive request from client
+            if check_time():
+                print(data)
+                print("Received JSON:")
+                send_update(data)
         except json.JSONDecodeError:
             print(email)
             print("Received string")
             send_confirmation(email)
-
-
