@@ -23,7 +23,9 @@ from news import print_news_table
 import sys
 print(sys.executable)
 
-
+#TODO: Error check for stock tickers
+# download yahoo_fin
+# implement email microservice
 
 #spy_list = yf.tickers_sp500()
 #print(spy_list)
@@ -206,6 +208,7 @@ def save_profile(profiles: dict):
 def check_cred():
     """
     #TODO: Look over class object. Better way to store data?
+    #TODO: Error checking for stock tickers(yahoo_fin?)
 
     Checks for username and password. User can create a profile. User's favorite
     stocks are saved in their profile.
@@ -241,7 +244,8 @@ def check_cred():
             profile = create_profile()
 
             # save profile info in dictionary
-            profiles = {profile.get_name(): [], profile.get_email(): profile.get_verf()}
+            # profiles = {profile.get_name(): [], "email": profile.get_email(), "email service": profile.get_verf()}
+            profiles = {profile.get_name(): [], "email": profile.get_email(), "email service": profile.get_verf()}
             #profiles[profile.get_name()] = []
             while True:
                 ticker = str(input("Please enter a stock ticker you want to keep track of.\n"
@@ -358,7 +362,7 @@ def main():
             console = Console(color_system="windows")
             console.print(table)
             # probably should change key to username and value as the name
-            print_news_table(next(iter(new_profile)))
+            print(print_news_table(next(iter(new_profile))))
             print("\n")
             print(new_profile)
 
@@ -385,6 +389,7 @@ def main():
 
             # print out news articles
             name = new_profile.get_name()
+            print(name)
             print_news_table(name)
 
             # exit program
