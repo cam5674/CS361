@@ -21,6 +21,7 @@ import cred
 from profile import Profile
 from news import print_news_table
 import sys
+from client_micro_c import delete_stock
 print(sys.executable)
 
 #TODO: Error check for stock tickers
@@ -294,7 +295,7 @@ def menu(profile=None):
 
     while True:
         # look up stocks for user
-        stock = str(input("Look up stock or enter 1 to exit\nEnter 2 to go back to main menu\nEnter your response: "))
+        stock = str(input("Look up stock or enter 1 to exit\nEnter 2 to go back to main menu\nEnter 3 to edit your stocks\nEnter your response: "))
         print("\n")
 
         if stock == "1":
@@ -303,6 +304,24 @@ def menu(profile=None):
 
         elif stock == "2":
             return "1"
+        elif stock == "3":
+            while True:
+                #TODO: Error handling(check for valid stock/entry)
+                s = str(input("Enter 1 to see list of favorite stocks\nEnter 2 to return to previous menu or enter a stock to delete from your stock favorites: "))
+                sl = []
+                print("\n")
+                if s == "1":
+                    for ticker in profile['fav']:
+                        print(f"{ticker}")
+                        sl.append(ticker)
+                    print("\n")
+                elif s == "2":
+                    break
+                else:
+                    user_info = {'username': next(iter(profile)), 'stock': s}
+                    delete_stock(user_info)
+
+            continue
         else:
             # get stock data and append it to a list
             stock_data = get_data(stock)
