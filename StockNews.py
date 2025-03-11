@@ -23,6 +23,8 @@ def fetch_news(ticker):
 
     return articles
 # username = None
+
+
 while True:
     favorite_stocks = socket.recv_json()
     print(favorite_stocks)

@@ -86,10 +86,10 @@ def send_update(user_info):
         html_rows = f"""
             <tr>
                     <td style="border: 1px solid black;">{stock_info[0]['ticker']}</td>
-                    <td style="border: 1px solid black;">{stock_info[0]['open']}</td>
-                    <td style="border: 1px solid black;">{stock_info[0]['high']}</td>
-                    <td style="border: 1px solid black;">{stock_info[0]['low']}</td>
-                    <td style="border: 1px solid black;">{stock_info[0]['tngoLast']}</td>
+                    <td style="border: 1px solid black;">${stock_info[0]['open']}</td>
+                    <td style="border: 1px solid black;">${stock_info[0]['high']}</td>
+                    <td style="border: 1px solid black;">${stock_info[0]['low']}</td>
+                    <td style="border: 1px solid black;">${stock_info[0]['tngoLast']}</td>
                     <td style="border: 1px solid black;">{stock_info[0]['volume']}</td>
             </tr>
         
@@ -98,11 +98,10 @@ def send_update(user_info):
 
     # join rows together to be used for html later
     rows = ' '.join(rows)
-    print(rows)
     me = email_me
 
     msg = MIMEMultipart('alternative')
-    msg['Subject'] = 'Stock Updates(ENTER DATE HERE)'
+    msg['Subject'] = 'Stock Updates'
     msg['From'] = me
     msg['To'] = email
 
@@ -112,9 +111,9 @@ def send_update(user_info):
            <head></head>
            <body>
                <p>Hi!<br>
-                   This is an email confirmation to confirm that you selected to receive daily updates for your stock favorites.<br>
+                   The bottom table displays your current holdings.<br>
                </p>
-               <table style="width:100%">
+               <table style="width:100%; border-collapse: collapse;">
                <tr>
                     <th style="border: 1px solid black;">Ticker</th>
                     <th style="border: 1px solid black;">Open</th>
@@ -131,7 +130,6 @@ def send_update(user_info):
        """
     # add rows to html table
     html = html.replace("{{placeholder}}", rows)
-    print(html)
 
     # Record the MIME types of both parts
     text = MIMEText(html, 'html')
@@ -148,7 +146,7 @@ def send_update(user_info):
 
 def check_time():
 
-    target_time = datetime.now().replace(hour=14, minute=43, second=0)
+    target_time = datetime.now().replace(hour=16, minute=19, second=0)
 
     while True:
 
@@ -156,7 +154,7 @@ def check_time():
         print(f"current time{now}")
         print(f"target time{target_time}")
         sleep_time = target_time - now
-
+        print(f"Sleep time{sleep_time}")
         print(type(sleep_time))
         if sleep_time < timedelta(minutes=-1):
             target_time = target_time + timedelta(days=1)
@@ -175,19 +173,19 @@ def check_time():
 while True:
 
     # check if it is the time
-        print("Ready to do work!")
-        email = socket.recv_string()
-        print(f"received {email}")
+    print("Ready to do work!")
+    email = socket.recv_string()
+    print(f"received {email}")
 
-        # check request type(single email vs JSON of emails and favorite stocks
-        try:
-            data = json.loads(email)
-            # check if it is the correct time to receive request from client
-            if check_time():
-                print(data)
-                print("Received JSON:")
-                send_update(data)
-        except json.JSONDecodeError:
-            print(email)
-            print("Received string")
-            send_confirmation(email)
+    # check request type(single email vs JSON of emails and favorite stocks
+    try:
+        data = json.loads(email)
+        # check if it is the correct time to receive request from client
+        if check_time():
+            print(data)
+            print("Received JSON:")
+            send_update(data)
+    except json.JSONDecodeError:
+        print(email)
+        print("Received string")
+        send_confirmation(email)

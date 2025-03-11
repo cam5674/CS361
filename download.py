@@ -1,5 +1,3 @@
-
-
 import time
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
@@ -47,11 +45,9 @@ def prompt_stock_for_dl():
             break
         try:
             download_csv(stock)
+            break
         except TimeoutException:
             print("Please enter a correct stock ticker")
             print("\n")
             continue
 
-
-
-prompt_stock_for_dl()

@@ -7,7 +7,7 @@ import zmq
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 
-socket.bind("tcp://*:5558")
+socket.bind("tcp://*:5554")
 
 
 def replace_stock(user_info):

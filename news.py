@@ -18,7 +18,6 @@ def print_news_table(username=None):
         news = get_news(username)
     else:
         news = get_news()
-        print(news)
     table = Table("Ticker", style="magenta", expand=True)
     table.add_column("Title", justify="right", style="white", )
     table.add_column("Date", justify="right", style="white",)

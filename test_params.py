@@ -1,11 +1,11 @@
 import zmq
 import json
-
+import time
 
 # zmq context and socket are initialized globally
 path =  "storage.json"
 context = zmq.Context()
-print("Client attempting to connect to server...")
+print("Client A attempting to connect to server...")
 
 socket = context.socket(zmq.REQ)
 
@@ -13,11 +13,11 @@ socket.connect("tcp://localhost:5555")
 
 print(f"Sending a request...")
 
-with open(path, "r") as file:
-        data = json.load(file)
-
 
 def get_news(username=None):
+        with open(path, "r") as file:
+                data = json.load(file)
+
         favorite_stocks = None
         if username:
                 for entry in data:
@@ -43,7 +43,6 @@ def get_news(username=None):
         with open("stock_news.json", "w") as outfile:
                 json.dump(news_list, outfile, indent=4)
 
-        print("news articles saved to stock_news.json")
         return news_list
 
 

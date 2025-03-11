@@ -10,26 +10,20 @@ need to get a key from tiingo, create a module named cred and write your key in
 the program, like this: key = "7777777777". Then you can import it to this module.
 
 """
+from print_csv import prompt_stock_history_table
+from  download import prompt_stock_for_dl
 import re
 import json
 from rich.console import Console
 from rich.table import Table
 import requests
-import yfinance as yf
-from client_micro_b import send_email
 import cred
 from profile import Profile
 from news import print_news_table
-import sys
+from client_micro_b import send_email
 from client_micro_c import delete_stock
-print(sys.executable)
 
 #TODO: Error check for stock tickers
-# download yahoo_fin
-# implement email microservice
-
-#spy_list = yf.tickers_sp500()
-#print(spy_list)
 
 
 def get_data(stock: str):
@@ -73,7 +67,6 @@ def pretty_print(stock):
     for x in range(0, len(stock)):
         # unpack
         stock_info = stock[x]
-
         # check daily percentage change
         percentage_change = round(((stock_info[0]['tngoLast'] - stock_info[0]['open']) / stock_info[0]['tngoLast']) * 100, 2)
 
@@ -100,6 +93,7 @@ def reset_table():
     table.add_column("Low", justify="right", style="white")
     table.add_column("Open", justify="right", style="white")
     table.add_column("Volume", justify="right", style="white")
+
 
 def check_username(name: str):
     """
@@ -170,6 +164,7 @@ def create_profile():
         break
     # create instance to store information
     profile = Profile(name, email, response)
+    print(email)
     send_email(profile.get_email())
     print("Sending a confirmation email...")
 
@@ -222,6 +217,7 @@ def check_cred():
     """
 
     # introduce program
+    print("\n\n")
     print("Welcome!\n")
     while True:
         response = str(input("Enter 1 to sign in \nEnter 2 to create a profile. Creating a profile will let you save your favorite stocks. "
@@ -295,7 +291,7 @@ def menu(profile=None):
 
     while True:
         # look up stocks for user
-        stock = str(input("Look up stock or enter 1 to exit\nEnter 2 to go back to main menu\nEnter 3 to edit your stocks\nEnter your response: "))
+        stock = str(input("Look up stock or enter 1 to exit\nEnter 2 to go back to main menu\nEnter 3 to edit your stocks\nEnter 4 to look up stock history\nEnter your response: "))
         print("\n")
 
         if stock == "1":
@@ -307,7 +303,7 @@ def menu(profile=None):
         elif stock == "3":
             while True:
                 #TODO: Error handling(check for valid stock/entry)
-                s = str(input("Enter 1 to see list of favorite stocks\nEnter 2 to return to previous menu or enter a stock to delete from your stock favorites: "))
+                s = str(input("Enter 1 to see list of favorite stocks\nEnter 2 to return to previous menu or enter a stock to delete from your stock favorites:\nEnter 3 to see stock history: "))
                 sl = []
                 print("\n")
                 if s == "1":
@@ -319,9 +315,14 @@ def menu(profile=None):
                     break
                 else:
                     user_info = {'username': next(iter(profile)), 'stock': s}
-                    delete_stock(user_info)
+                    reply = delete_stock(user_info)
+                    print(reply)
+                    print("\n")
 
             continue
+        elif stock == "4":
+            prompt_stock_for_dl()
+            prompt_stock_history_table()
         else:
             # get stock data and append it to a list
             stock_data = get_data(stock)
@@ -387,7 +388,6 @@ def main():
             # probably should change key to username and value as the name
             print(print_news_table(next(iter(new_profile))))
             print("\n")
-            print(new_profile)
 
             # exit program
             if menu(new_profile) == "0":
@@ -412,7 +412,6 @@ def main():
 
             # print out news articles
             name = new_profile.get_name()
-            print(name)
             print_news_table(name)
 
             # exit program
