@@ -7,7 +7,7 @@ import time
 # zmq context and socket are initialized globally
 path = "storage.json"
 context = zmq.Context()
-print("Client attempting to connect to server...")
+print("Client B attempting to connect to server...")
 
 socket = context.socket(zmq.REQ)
 
@@ -30,7 +30,7 @@ def send_email(email: str):
     :param email: Email or emails to be sent to the server
     :return:
     """
-
+    print(f"Sent{email}")
     socket.send_string(email)
     recv = socket.recv_string()
     print(f"Received confirmation {recv}")
@@ -43,13 +43,13 @@ def check_time():
     :return:
     """
 
-    target_time = datetime.now().replace(hour=14, minute=43, second=0)
+    target_time = datetime.now().replace(hour=16, minute=19, second=0)
 
     while True:
 
         now = datetime.now()
-        print(f"current time{now}")
-        print(f"target time{target_time}")
+        print(f"current time: {now}")
+        print(f"target time: {target_time}")
         sleep_time = target_time - now
 
         # margin of error of 1 minute
