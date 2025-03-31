@@ -16,6 +16,7 @@ class Profile:
 
     def get_verf(self):
         return self._verf
+
     def get_fav_stocks(self):
         return self._fav_stocks
 
@@ -38,7 +39,3 @@ class Profile:
     def print_fav_stocks(self):
         for i in self._fav_stocks:
             print(i)
-class Storage:
-  ...
-  def __init__(self):
-      self._storage = {}
