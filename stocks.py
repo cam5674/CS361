@@ -1,17 +1,17 @@
 """
 This program prints a text based menu in the console for the user to interact
 with. All user information(favorite stocks/username) is saved in the
-storage.json file. A user can search stocks and save/add stocks to their
-profile.
+storage.json file. A user can search stocks, save/add stocks, and look up stock
+history.
 
 WARNING: For this program to work you need an api key from tiingo. The cred
-file contains my personal key. IF you would like to use this program you will
+file contains my personal key. If you would like to use this program you will
 need to get a key from tiingo, create a module named cred and write your key in
 the program, like this: key = "7777777777". Then you can import it to this module.
 
 """
 from print_csv import prompt_stock_history_table
-from  download import prompt_stock_for_dl
+from download import prompt_stock_for_dl
 import re
 import json
 from rich.console import Console
@@ -23,8 +23,6 @@ from news import print_news_table
 from client_micro_b import send_email
 from client_micro_c import delete_stock
 
-#TODO: Error check for stock tickers
-
 
 def get_data(stock: str):
     """
@@ -32,11 +30,11 @@ def get_data(stock: str):
     needs to be an accurate ticker.
 
     Example of data:
-
+3
     list with a dictionary:
     [{}]
     :param stock: ticker to be looked up.
-    :return: JSON of data
+    :return: JSON of data or an empty list if not a correct ticker
     """
 
     headers = {
@@ -83,9 +81,7 @@ def pretty_print(stock):
 
 def reset_table():
     """
-    Erases the table
-    :return:
-
+    Erases the current table
     """
     table = Table("Ticker", style="magenta")
     table.add_column("Last Price", justify="right", style="white")
@@ -129,7 +125,6 @@ def create_profile():
 
     :return: New profile class object profile
     """
-    #TODO: Check wrong inputs
 
     # prompt user for a username. Check if it is longer than 15 characters
     while True:
@@ -170,17 +165,19 @@ def create_profile():
 
     return profile
 
-
+""" 
 def new_profile(profile):
-    """
+    
     #TODO: Refactor this code. Not using it at the moment.
     Places a new profile in the JSON file.
 
     :param profile: dictionary
     :return:
-    """
+
     with open("storage.json", "a") as f:
         json.dump(profile, f, indent=5)
+
+"""
 
 
 def save_profile(profiles: dict):
@@ -207,9 +204,6 @@ def save_profile(profiles: dict):
 
 def check_cred():
     """
-    #TODO: Look over class object. Better way to store data?
-    #TODO: Error checking for stock tickers(yahoo_fin?)
-
     Checks for username and password. User can create a profile. User's favorite
     stocks are saved in their profile.
 
@@ -228,18 +222,23 @@ def check_cred():
             # check for valid username
             while True:
                 name = input(str("Please enter your username: "))
+                print("\n")
                 if len(name) >= 15:
                     print("Too long. Please enter a username that is less than 15 characters.")
                     print("\n")
                     continue
                 # check if the name is valid
+                elif name == "1":
+                    break
                 valid, dic = check_username(name)
                 if valid:
                     # valid, return dict
                     return dic
                 # ask again
                 else:
-                    break
+                    print("You did not enter the correct username. Please try again or enter 1 to quit: ")
+                    print("\n")
+                    continue
         elif response == "2":
             # save class object in profile
             profile = create_profile()
@@ -281,18 +280,22 @@ def check_cred():
 def menu(profile=None):
     """
     Looks up a stock for a user. Will print out a table of the user's favorite
-    stocks. IF the user selects '3', then the program will treat the user as a
-    guest.
+    stocks. If the user selects '3' or if the profile is a '3', then the program
+    will treat the user as a guest.
 
     :param profile: If dictionary, profile is old and if '3', user is a guest.
     :return: A number, 0 or 1: 0 to end the program, 1 to continue the program
     """
-    stock_list = []
 
+    stock_list = []
     while True:
         # look up stocks for user
-        stock = str(input("Look up stock or enter 1 to exit\nEnter 2 to go back to main menu\nEnter 3 to edit your stocks\nEnter 4 to look up stock history\nEnter your response: "))
-        print("\n")
+        if profile == '3':
+            stock = str(input("Look up stock or enter 1 to exit\nEnter 2 to go back to main menu\nEnter 3 to look up stock history\nEnter your response: "))
+            print("\n")
+        else:
+            stock = str(input("Look up stock or enter 1 to exit\nEnter 2 to go back to main menu\nEnter 3 to look up stock history\nEnter 4 to edit your stocks\nEnter your response: "))
+            print("\n")
 
         if stock == "1":
             print("Thank you for stopping by!")
@@ -300,9 +303,8 @@ def menu(profile=None):
 
         elif stock == "2":
             return "1"
-        elif stock == "3":
+        elif stock == "4":
             while True:
-                #TODO: Error handling(check for valid stock/entry)
                 s = str(input("Enter 1 to see list of favorite stocks\nEnter 2 to return to previous menu or enter a stock to delete from your stock favorites:\nEnter 3 to see stock history: "))
                 sl = []
                 print("\n")
@@ -320,48 +322,51 @@ def menu(profile=None):
                     print("\n")
 
             continue
-        elif stock == "4":
+        elif stock == "3":
             prompt_stock_for_dl()
             prompt_stock_history_table()
         else:
-            # get stock data and append it to a list
+            # get stock data and append it to a list if stock ticker is correct
             stock_data = get_data(stock)
-            stock_list.append(stock_data)
-
-            # print out stock data. Adds a row to previous table
-            table = pretty_print(stock_list)
-            console = Console(color_system="windows")
-            console.print(table)
-
-            # no profile option
-            if profile != "3":
-                response = str(input(f"Would you like to add {stock} to your favorites? y/n\nEnter your response: "))
+            if not stock_data:
+                print("Did not enter a correct stock ticker. Please try again.")
                 print("\n")
-                if response == "y":
-                    with open("storage.json", "r") as f:
-                        # get value
-                        data = json.load(f)
-                        for dic in data:
-                            for key in dic.keys():
-                                if key == list(profile)[0]:
-                                    # add to value
-                                    dic["fav"].append(stock)
-                    # write to file
-                    with open("storage.json", "w") as file:
-                        json.dump(data, file, indent=4)
-                        print(f"Your favorites has been updated with {stock}! ")
-                        file.close()
+                continue
+            else:
+                stock_list.append(stock_data)
+                # print out stock data. Adds a row to previous table
+                table = pretty_print(stock_list)
+                console = Console(color_system="windows")
+                console.print(table)
 
-                elif response == "n":
-                    continue
+                # no profile option
+                if profile != "3":
+                    response = str(input(f"Would you like to add {stock} to your favorites? y/n\nEnter your response: "))
+                    print("\n")
+                    if response == "y":
+                        with open("storage.json", "r") as f:
+                            # get value
+                            data = json.load(f)
+                            for dic in data:
+                                for key in dic.keys():
+                                    if key == list(profile)[0]:
+                                        # add to value
+                                        dic["fav"].append(stock)
+                        # write to file
+                        with open("storage.json", "w") as file:
+                            json.dump(data, file, indent=4)
+                            print(f"Your favorites has been updated with {stock}! ")
+                            print("\n")
+                            file.close()
+
+                    elif response == "n":
+                        continue
 
 
 def main():
     """
     new_profile could be a dict, a boolean value, or class object.
-    Does not work if the username does not exist
     """
-    #TODO: change key to username and value as the name
     while True:
         # get profile if it exists
         new_profile = check_cred()
@@ -373,6 +378,7 @@ def main():
         # exit program
         elif new_profile == "5":
             break
+
         # If new_profile is a dictionary, then it is an old profile
         elif isinstance(new_profile, dict):
             # get list of favorite stocks and put them in favs
@@ -381,11 +387,11 @@ def main():
             for stock in favs:
                 stock = get_data(stock)
                 fav_stocks.append(stock)
+
             # print favorite stocks for user
             table = pretty_print(fav_stocks)
             console = Console(color_system="windows")
             console.print(table)
-            # probably should change key to username and value as the name
             print(print_news_table(next(iter(new_profile))))
             print("\n")
 
@@ -393,12 +399,8 @@ def main():
             if menu(new_profile) == "0":
                 break
 
-        # check if user created a profile and print out their favorite stocks
-        # should this be a function? Print out favs for user?
-
         # new profile
         else:
-            #TODO: Print out news for new profiles
             stocks = []
             for stock in new_profile.get_fav_stocks():
                 stock = get_data(stock)
