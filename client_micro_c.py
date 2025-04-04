@@ -23,6 +23,7 @@ def delete_stock(user_info):
 
     socket.send_json(user_info)
     reply = socket.recv_string()
+    print(reply)
 
     return reply
 

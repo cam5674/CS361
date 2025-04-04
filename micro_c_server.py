@@ -22,22 +22,26 @@ def replace_stock(user_info):
                 for key,values in info.items():
                     if key == name:
                         info["fav"].remove(stock)
+                        profile = info
         except ValueError:
             return False
 
         with open("storage.json", "w") as file:
             json.dump(data, file, indent=4)
 
-    return True
+    print(profile)
+    return True, profile
 
 
 while True:
     data = socket.recv_json()
     print("Received Request...")
-    if replace_stock(data):
-        socket.send_string("Deleted stock")
+    check = replace_stock(data)
+    if not check:
+        print("False")
+        socket.send_string("0")
     else:
-        socket.send_string("Stock not in favorites!")
+        socket.send_json(check[1])
 
 
 

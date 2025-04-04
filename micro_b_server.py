@@ -18,7 +18,7 @@ password = os.getenv('password')
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 
-socket.bind("tcp://*:5557")
+socket.bind("tcp://*:5559")
 
 
 def send_confirmation(user_email):

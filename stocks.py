@@ -40,7 +40,8 @@ def get_data(stock: str):
     headers = {
         'Content-Type': 'application/json'
     }
-    response = requests.get(f"https://api.tiingo.com/iex/?tickers={stock}&token={cred.key}", headers=headers)
+    response = requests.get(f"https://api.tiingo.com/iex/?tickers="
+                            f"{stock}&token={cred.key}", headers=headers)
     data = response.json()
     return data
 
@@ -74,7 +75,10 @@ def pretty_print(stock):
         else:
             percentage_change = f'[red]{percentage_change}%[/red]'
         # Get the dictionary in the list and print out a row
-        table.add_row(stock_info[0]['ticker'], str(stock_info[0]['open']), str(stock_info[0]['high']), str(stock_info[0]['low']), str(stock_info[0]['tngoLast']), percentage_change, str(stock_info[0]['volume']))
+        table.add_row(stock_info[0]['ticker'], str(stock_info[0]['open']),
+                      str(stock_info[0]['high']), str(stock_info[0]['low']),
+                      str(stock_info[0]['tngoLast']), percentage_change,
+                      str(stock_info[0]['volume']))
 
     return table
 
@@ -94,8 +98,8 @@ def reset_table():
 def check_username(name: str):
     """
     Returns True if username is in the file. The dictionary of the profile is
-    returned as well. Returns False if the username is not in the file and 0 for the
-    dictionary. Checks if username is in storage file.
+    returned as well. Returns False if the username is not in the file and 0 for
+    the dictionary. Checks if username is in storage file.
     :param name: String
     :return: A bool depending on if the username is in the json file or not.
 
@@ -165,20 +169,6 @@ def create_profile():
 
     return profile
 
-""" 
-def new_profile(profile):
-    
-    #TODO: Refactor this code. Not using it at the moment.
-    Places a new profile in the JSON file.
-
-    :param profile: dictionary
-    :return:
-
-    with open("storage.json", "a") as f:
-        json.dump(profile, f, indent=5)
-
-"""
-
 
 def save_profile(profiles: dict):
     """
@@ -211,11 +201,12 @@ def check_cred():
     """
 
     # introduce program
+    stock_list = []
     print("\n\n")
     print("Welcome!\n")
     while True:
         response = str(input("Enter 1 to sign in \nEnter 2 to create a profile. Creating a profile will let you save your favorite stocks. "
-                             "\nEnter 3 to contine without a profile\nEnter 4 for more information about the program\nEnter 5 to exit program\nPlease enter your response: "))
+                             "\nEnter 3 to continue without a profile\nEnter 4 for more information about the program\nEnter 5 to exit program\nPlease enter your response: "))
         print("\n")
 
         if response == "1":
@@ -242,6 +233,7 @@ def check_cred():
         elif response == "2":
             # save class object in profile
             profile = create_profile()
+            print(profile)
 
             # save profile info in dictionary
             # profiles = {profile.get_name(): [], "email": profile.get_email(), "email service": profile.get_verf()}
@@ -254,8 +246,20 @@ def check_cred():
                 print("\n")
                 if ticker == "1":
                     break
-                profile.set_fav_stocks(ticker)
 
+                # check if stock tickers are correct and then add to fav list
+                stocks = get_data(ticker)
+                if not stocks:
+                    print("Did not enter a correct stock ticker. Please try again.")
+                    print("\n")
+                    continue
+                profile.set_fav_stocks(ticker)
+                stock_list.append(stocks)
+
+            # print out stock data. Adds a row to previous table
+            table = pretty_print(stock_list)
+            console = Console(color_system="windows")
+            console.print(table)
             profiles['fav'] = profile.get_fav_stocks()
             save_profile(profiles)
             break
@@ -286,7 +290,8 @@ def menu(profile=None):
     :param profile: If dictionary, profile is old and if '3', user is a guest.
     :return: A number, 0 or 1: 0 to end the program, 1 to continue the program
     """
-
+    # Need to check username here for new profile edge case
+    print(profile)
     stock_list = []
     while True:
         # look up stocks for user
@@ -304,11 +309,20 @@ def menu(profile=None):
         elif stock == "2":
             return "1"
         elif stock == "4":
+            # check for the correct information(dictionary)
+            if type(profile) is not dict:
+                profile = check_username(profile)
+                if type(profile) is tuple:
+                    profile = profile[1]
+                print(profile)
+
             while True:
                 s = str(input("Enter 1 to see list of favorite stocks\nEnter 2 to return to previous menu or enter a stock to delete from your stock favorites:\nEnter 3 to see stock history: "))
                 sl = []
                 print("\n")
+                # print out list of favorite stocks
                 if s == "1":
+                    print(f"profile before list:{profile}")
                     for ticker in profile['fav']:
                         print(f"{ticker}")
                         sl.append(ticker)
@@ -316,10 +330,18 @@ def menu(profile=None):
                 elif s == "2":
                     break
                 else:
+                    # get info for stock deletion micro service
                     user_info = {'username': next(iter(profile)), 'stock': s}
                     reply = delete_stock(user_info)
-                    print(reply)
-                    print("\n")
+                    if reply == "0":
+                        print("Incorrect stock ticker")
+                        print("\n")
+                    else:
+                        # turn reply into a dictionary
+                        profile = eval(reply)
+                        print(f"profile after initial deletion{profile}")
+                        print(f"Deleted {s}")
+                        print("\n")
 
             continue
         elif stock == "3":
@@ -401,17 +423,6 @@ def main():
 
         # new profile
         else:
-            stocks = []
-            for stock in new_profile.get_fav_stocks():
-                stock = get_data(stock)
-                stocks.append(stock)
-
-            # print favorite stocks for user
-            table = pretty_print(stocks)
-            console = Console(color_system="windows")
-            console.print(table)
-            print("\n\n")
-
             # print out news articles
             name = new_profile.get_name()
             print_news_table(name)

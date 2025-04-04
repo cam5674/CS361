@@ -11,7 +11,7 @@ print("Client B attempting to connect to server...")
 
 socket = context.socket(zmq.REQ)
 
-socket.connect("tcp://localhost:5557")
+socket.connect("tcp://localhost:5559")
 
 print(f"Sending a request...")
 
