@@ -23,6 +23,8 @@ from news import print_news_table
 from client_micro_b import send_email
 from client_micro_c import delete_stock
 
+#TODO Check if error handling is correct for file empty error
+#TODO write documentation for microservices
 
 def get_data(stock: str):
     """
@@ -106,6 +108,12 @@ def check_username(name: str):
     """
     # open file to check JSON for name
     with open("storage.json", "r") as f:
+        # edge case for empty file
+        if len(f.read()) == 0:
+            print("File is empty. No profiles exists. You need to create a "
+                  "profile before signing in.")
+            print("\n")
+            menu()
         try:
             data = json.load(f)
         except json.decoder.JSONDecodeError:
@@ -132,12 +140,26 @@ def create_profile():
 
     # prompt user for a username. Check if it is longer than 15 characters
     while True:
-        name = str(input("Enter a username. A username needs to be less than 15 characters: "))
+        name = str(input("Enter a username. A username needs to be less than 15 characters: ").replace(" ", ""))
+
+        print(name)
         if len(name) >= 15:
+            print("\n")
             print("Too long. Please enter a username that is less than 15 characters.")
             print("\n")
             continue
         # bool value[0], 0 = name is taken.
+        elif len(name) < 1:
+            print("\n")
+            print("No characteres detected. Please enter a username that is less than 15 characters.")
+            print("\n")
+            continue
+        elif name.isspace():
+            print("\n")
+            print("Empty spaces detected. Please enter a username that is less"
+                  " than 15 characters and with no empty spaces. ")
+            print("\n")
+            continue
         try:
             if check_username(name)[0]:
                 print("Username is taken. Please enter another username.")
@@ -370,10 +392,12 @@ def menu(profile=None):
                             # get value
                             data = json.load(f)
                             for dic in data:
+                                print(f"dic: {dic}")
                                 for key in dic.keys():
                                     if key == list(profile)[0]:
-                                        # add to value
+                                        # add to value and update profile
                                         dic["fav"].append(stock)
+                                        profile = dic
                         # write to file
                         with open("storage.json", "w") as file:
                             json.dump(data, file, indent=4)
