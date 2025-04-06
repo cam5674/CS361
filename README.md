@@ -2,7 +2,7 @@
 
 This program includes three microservices: email confirmation, stock news, and stock deletion. Each microservice uses ZMQ as the communication pipeline.
 
- - **Email Confirmation Microservice**: This microservice processes a request containing the user’s email as a string and sends a confirmation email to the provided address.
+ - **Email Confirmation Microservice**: This microservice processes a request containing the user’s email as a string and sends a confirmation email to the provided address. Futhermore, for each email that has enrolled in email updates, the microservice sends an email, at the requested time, containing the current stock prices of the user's profile.
 
  - **Stock News Microservice**: This microservice processes a list of stocks and returns links to relevant news articles for each stock. 
 
