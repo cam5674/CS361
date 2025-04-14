@@ -23,9 +23,6 @@ from news import print_news_table
 from client_micro_b import send_email
 from client_micro_c import delete_stock
 
-#TODO Check if error handling is correct for file empty error
-#TODO write documentation for microservices
-
 
 def get_data(stock: str):
     """
