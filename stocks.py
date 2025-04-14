@@ -26,6 +26,7 @@ from client_micro_c import delete_stock
 #TODO Check if error handling is correct for file empty error
 #TODO write documentation for microservices
 
+
 def get_data(stock: str):
     """
     Uses tiingo api to get the stock. Takes a string from the user, string
@@ -108,12 +109,6 @@ def check_username(name: str):
     """
     # open file to check JSON for name
     with open("storage.json", "r") as f:
-        # edge case for empty file
-        if len(f.read()) == 0:
-            print("File is empty. No profiles exists. You need to create a "
-                  "profile before signing in.")
-            print("\n")
-            menu()
         try:
             data = json.load(f)
         except json.decoder.JSONDecodeError:
@@ -414,8 +409,12 @@ def main():
     new_profile could be a dict, a boolean value, or class object.
     """
     while True:
-        # get profile if it exists
-        new_profile = check_cred()
+        # get profile if it exists and check if file is empty
+        try:
+            new_profile = check_cred()
+        except TypeError:
+            print("File is empty. No profiles exists. You need to create a profile before signing in.")
+            continue
 
         # Continue without a profile
         if new_profile == "3":
