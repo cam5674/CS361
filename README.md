@@ -1,4 +1,4 @@
-# This program prints a text-based menu in the console for the user to interact with. All user information(favorite stocks/username) is saved in the storage.json file. A user can search stocks and save/add stocks to their profile.
+This program prints a text-based menu in the console for the user to interact with. All user information(favorite stocks/username) is saved in the storage.json file. A user can search stocks and save/add stocks to their profile.
 
 This program includes three microservices: email confirmation, stock news, and stock deletion. Each microservice uses ZMQ as the communication pipeline.
 
