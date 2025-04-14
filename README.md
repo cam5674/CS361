@@ -1,6 +1,4 @@
-This program prints a text-based menu in the console for the user to interact with. All user information(favorite stocks/username) is saved in the storage.json file. A user can search stocks and save/add stocks to their profile.
-
-This program includes three microservices: email confirmation, stock news, and stock deletion. Each microservice uses ZMQ as the communication pipeline.
+This program prints a text-based menu in the console for the user to interact with. All user information(favorite stocks/username) is saved in the storage.json file. A user can search stocks and save/add stocks to their profile. Three microservices increase the program's functionality: email confirmation, stock news, and stock deletion. Each microservice uses ZMQ as the communication pipeline.
 
  - **Email Confirmation Microservice**: This microservice processes a request containing the user’s email as a string and sends a confirmation email to the provided address. Futhermore, for each email that has enrolled in email updates, the microservice sends an email, at the requested time, containing the current stock prices of the user's profile.
 
