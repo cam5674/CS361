@@ -409,7 +409,7 @@ def main():
     new_profile could be a dict, a boolean value, or class object.
     """
     while True:
-        # get profile if it exists and check if file is
+        # get profile
         try:
             new_profile = check_cred()
         except TypeError:
