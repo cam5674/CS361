@@ -10,4 +10,4 @@ This program prints a text-based menu in the console for the user to interact wi
 WARNING: For the stocks program to work, you need an api key from tiingo. If you would like to use this program, you will need to get a key from tiingo, create a module named cred, and write your key in the program, like this: key = "7777777777". Then, you can import it to this module.
 
 **How to run the program**
-- To run the program, you must run StockNews.py, micro_b_server.py, and micro_c_server.py before running stocks.py. 
+- To run the program, you must run StockNews.py, micro_b_server.py, and micro_c_server.py before running the main program, stocks.py. 
